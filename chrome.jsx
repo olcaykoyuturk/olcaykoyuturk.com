@@ -1,7 +1,7 @@
 // === Shared chrome: cursor, background fx, hooks ===
 // Loaded BEFORE app.jsx or writings.jsx. Exposes shared bits via window.
 
-const { useState: useStateCh, useEffect: useEffectCh, useRef: useRefCh, useCallback: useCallbackCh } = React;
+const { useState, useEffect, useRef, useCallback } = React;
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "theme": "dark",
@@ -10,12 +10,24 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showCursor": true
 }/*EDITMODE-END*/;
 
+// Site sections — shared by app.jsx (active-section tracking) and
+// writings.jsx (nav only). Each entry: [dom-id, copy-key in COPY.nav].
+const SECTIONS = [
+  ["about", "about"],
+  ["education", "education"],
+  ["experience", "experience"],
+  ["projects", "projects"],
+  ["certificates", "certificates"],
+  ["blog", "blog"],
+  ["contact", "contact"],
+];
+
 // ---------------- Custom magnetic cursor ----------------
 function Cursor({ enabled }) {
-  const dotRef = useRefCh(null);
-  const ringRef = useRefCh(null);
+  const dotRef = useRef(null);
+  const ringRef = useRef(null);
 
-  useEffectCh(() => {
+  useEffect(() => {
     if (!enabled) return;
     let dx = -100, dy = -100, rx = -100, ry = -100;
     let mx = -100, my = -100;
@@ -68,9 +80,9 @@ function Cursor({ enabled }) {
 
 // ---------------- Background canvas ----------------
 function BackgroundFX({ effect }) {
-  const canvasRef = useRefCh(null);
+  const canvasRef = useRef(null);
 
-  useEffectCh(() => {
+  useEffect(() => {
     if (effect === "none") return;
     const c = canvasRef.current;
     if (!c) return;
@@ -191,7 +203,7 @@ function BackgroundFX({ effect }) {
 
 // ---------------- Scroll reveal ----------------
 function useScrollReveal(deps) {
-  useEffectCh(() => {
+  useEffect(() => {
     const els = Array.from(document.querySelectorAll(".reveal"));
     const reveal = (el) => el.classList.add("in");
     const check = () => {
@@ -231,28 +243,45 @@ function useScrollReveal(deps) {
 
 // ---------------- Active section tracking ----------------
 function useActiveSection(ids) {
-  const [active, setActive] = useStateCh(ids[0]);
-  useEffectCh(() => {
+  const [active, setActive] = useState(ids[0]);
+  useEffect(() => {
+    let raf = null;
     const update = () => {
-      const fold = window.innerHeight * 0.35;
-      let best = ids[0];
-      let bestDist = Infinity;
+      raf = null;
+      const line = 160;
+      let best = null;
+      let bestTop = -Infinity;
       for (const id of ids) {
         const el = document.getElementById(id);
         if (!el) continue;
-        const r = el.getBoundingClientRect();
-        const dist = Math.abs(r.top - fold);
-        if (r.top - fold < 0 && r.bottom - fold > 0) { best = id; break; }
-        if (dist < bestDist) { bestDist = dist; best = id; }
+        const t = el.getBoundingClientRect().top;
+        if (t <= line && t > bestTop) {
+          bestTop = t;
+          best = id;
+        }
+      }
+      if (best === null) best = ids[0];
+
+      const docH = document.documentElement.scrollHeight;
+      if (window.scrollY + window.innerHeight >= docH - 4) {
+        for (let i = ids.length - 1; i >= 0; i--) {
+          if (document.getElementById(ids[i])) { best = ids[i]; break; }
+        }
       }
       setActive(best);
     };
+    const schedule = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(update);
+    };
     update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    window.addEventListener("hashchange", () => setTimeout(update, 50));
     return () => {
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (raf) cancelAnimationFrame(raf);
     };
   }, []);
   return active;
@@ -260,7 +289,7 @@ function useActiveSection(ids) {
 
 // ---------------- Animate language bars ----------------
 function useLangBars(lang) {
-  useEffectCh(() => {
+  useEffect(() => {
     const bars = document.querySelectorAll(".lang-bar > i");
     bars.forEach((b) => {
       const style = b.getAttribute("style");
@@ -270,6 +299,34 @@ function useLangBars(lang) {
       }));
     });
   }, [lang]);
+}
+
+// Mirror the React lang state onto <html lang> so screen readers and
+// search engines see the correct language.
+function useHtmlLang(lang) {
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
+}
+
+// Magnetic tilt: returns { ref, onMouseMove, onMouseLeave } — spread onto a
+// card-like element to give it the lift + 3D tilt on hover. Cards must
+// declare `style={{ transformStyle: "preserve-3d" }}` themselves so the
+// inline transform composes correctly.
+function useMagneticTilt() {
+  const ref = useRef(null);
+  const onMouseMove = useCallback((e) => {
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    el.style.transform = `translateY(-2px) rotateX(${-y * 3}deg) rotateY(${x * 3}deg)`;
+  }, []);
+  const onMouseLeave = useCallback(() => {
+    if (ref.current) ref.current.style.transform = "";
+  }, []);
+  return { ref, onMouseMove, onMouseLeave };
 }
 
 // ---------------- Tweaks panel block ----------------
@@ -320,7 +377,7 @@ function PortfolioTweaks({ lang, t, setTweak }) {
 function useAppearance(t, setTweak) {
   const THEME_ACCENTS = { dark: "#3b82f6", light: "#7c5cff" };
   const KNOWN = new Set(["#3b82f6", "#7c5cff", "#00e5ff", "#00ff88", "#ff5577"]);
-  useEffectCh(() => {
+  useEffect(() => {
     document.documentElement.setAttribute("data-theme", t.theme);
     // If current accent is a "known default" of the *other* theme, switch it.
     if (setTweak && KNOWN.has(t.accent)) {
@@ -331,7 +388,7 @@ function useAppearance(t, setTweak) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [t.theme]);
-  useEffectCh(() => {
+  useEffect(() => {
     document.documentElement.style.setProperty("--accent", t.accent);
     document.documentElement.style.setProperty("--accent-soft", t.accent + "1f");
     document.documentElement.style.setProperty("--accent-glow", t.accent + "73");
@@ -339,7 +396,8 @@ function useAppearance(t, setTweak) {
 }
 
 Object.assign(window, {
-  TWEAK_DEFAULTS,
+  TWEAK_DEFAULTS, SECTIONS,
   Cursor, BackgroundFX, PortfolioTweaks,
   useScrollReveal, useActiveSection, useLangBars, useAppearance,
+  useHtmlLang, useMagneticTilt,
 });

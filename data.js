@@ -1,11 +1,8 @@
 // CV / portfolio data — Turkish + English
 const PROFILE = {
-  name: "Olcay Koyutürk",
   role: { tr: "Yazılım Mühendisi", en: "Software Engineer" },
-  location: { tr: "İstanbul, Esenler", en: "İstanbul / Esenler" },
   email: "olcaykoyuturk@gmail.com",
   github: "github.com/olcaykoyuturk",
-  phone: "+90 553 850 25 78",
   taglines: {
     tr: [
       "sinyal işleme",
@@ -37,7 +34,6 @@ const EXPERIENCE = [
       tr: "Yazılım Mühendisliği Stajı — Ses Veri İşleme",
       en: "Software Engineering Internship — Audio Data Processing",
     },
-    location: "İstanbul",
     tags: ["DSP", "FFT", "Python", "Audio"],
     bullets: {
       tr: [
@@ -63,7 +59,6 @@ const EXPERIENCE = [
       tr: "Yazılım Mühendisliği Stajı — M-Bus Protokolü",
       en: "Software Engineering Internship — M-Bus Protocol",
     },
-    location: "İstanbul",
     tags: ["Python", "M-Bus", "SQL", "Analytics"],
     bullets: {
       tr: [
@@ -111,7 +106,7 @@ const PROJECTS = [
     id: "stilai",
     year: "2025",
     title: { tr: "Stilai", en: "Stilai" },
-    playStore: "#",
+    playStore: true,
     short: {
       tr: "Dolabını dijitale taşı, yapay zekâyla kombin öner, topluluğa katıl — kişisel stil asistanı uygulaması.",
       en: "Digitize your wardrobe, get AI-powered outfit suggestions, join a community — a personal style assistant app.",
@@ -137,7 +132,7 @@ const PROJECTS = [
     id: "cuzdanio",
     year: "2025",
     title: { tr: "CuzdanIO", en: "CuzdanIO" },
-    playStore: "#",
+    playStore: true,
     short: {
       tr: "Gelir, gider, abonelik, borç ve birikim hedeflerini tek yerden yöneten, çevrimdışı destekli kişisel finans uygulaması.",
       en: "Offline-capable personal finance app that manages income, expenses, subscriptions, debts and savings goals in one place.",
@@ -292,7 +287,6 @@ const COPY = {
       languages: "Diller",
       featured: "Öne Çıkan",
       viewProject: "Projeyi Aç",
-      readPost: "Devamını oku",
       close: "Kapat",
       stack: "Yığın",
       overview: "Genel Bakış",
@@ -314,7 +308,6 @@ const COPY = {
       languages: "Languages",
       featured: "Featured",
       viewProject: "View Project",
-      readPost: "Read post",
       close: "Close",
       stack: "Stack",
       overview: "Overview",

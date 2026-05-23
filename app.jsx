@@ -1,5 +1,5 @@
 // === App root: home page ===
-const { useState, useEffect, useCallback } = React;
+const { useState, useCallback } = React;
 
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -7,17 +7,9 @@ function App() {
   const [openProject, setOpenProject] = useState(null);
 
   useAppearance(t, setTweak);
+  useHtmlLang(lang);
 
-  const sections = [
-    ["about", "about"],
-    ["education", "education"],
-    ["experience", "experience"],
-    ["projects", "projects"],
-    ["certificates", "certificates"],
-    ["blog", "blog"],
-    ["contact", "contact"],
-  ];
-  const activeId = useActiveSection(sections.map((s) => s[0]));
+  const activeId = useActiveSection(SECTIONS.map((s) => s[0]));
 
   useScrollReveal([lang]);
   useLangBars(lang);
@@ -33,7 +25,7 @@ function App() {
       <Cursor enabled={t.showCursor} />
 
       <div className="app">
-        <Nav lang={lang} setLang={setLang} sections={sections} activeId={activeId} currentPage="home" />
+        <Nav lang={lang} setLang={setLang} sections={SECTIONS} activeId={activeId} currentPage="home" />
         <Hero lang={lang} />
         <About lang={lang} />
         <Education lang={lang} />

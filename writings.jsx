@@ -1,8 +1,7 @@
 // === Writings page ===
-const { useState: useStateW, useCallback: useCallbackW } = React;
+const { useState, useCallback } = React;
 
 function WritingsHero({ lang }) {
-  const c = PORTFOLIO_DATA.COPY.sections[lang];
   const title = lang === "tr" ? "Yazılar" : "Writings";
   return (
     <section className="writings-hero">
@@ -22,7 +21,7 @@ function WritingsHero({ lang }) {
               className="wht-char"
               style={{ animationDelay: `${0.18 + i * 0.05}s` }}
               aria-hidden="true">
-              {ch === " " ? "\u00a0" : ch}
+              {ch === " " ? " " : ch}
             </span>
           ))}
           <span className="wht-cursor" aria-hidden="true" />
@@ -33,29 +32,21 @@ function WritingsHero({ lang }) {
             : "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."}
         </p>
       </div>
-    </section>);
+    </section>
+  );
 }
 
 function WritingsApp() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  const [lang, setLang] = useStateW("tr");
-  const [openPost, setOpenPost] = useStateW(null);
+  const [lang, setLang] = useState("tr");
+  const [openPost, setOpenPost] = useState(null);
 
   useAppearance(t, setTweak);
+  useHtmlLang(lang);
   useScrollReveal([lang]);
 
-  const sections = [
-    ["about", "about"],
-    ["education", "education"],
-    ["experience", "experience"],
-    ["projects", "projects"],
-    ["certificates", "certificates"],
-    ["blog", "blog"],
-    ["contact", "contact"],
-  ];
-
-  const onOpen = useCallbackW((p) => setOpenPost(p), []);
-  const onClose = useCallbackW(() => setOpenPost(null), []);
+  const onOpen = useCallback((p) => setOpenPost(p), []);
+  const onClose = useCallback(() => setOpenPost(null), []);
 
   return (
     <>
@@ -65,7 +56,7 @@ function WritingsApp() {
       <Cursor enabled={t.showCursor} />
 
       <div className="app">
-        <Nav lang={lang} setLang={setLang} sections={sections} activeId="blog" currentPage="writings" />
+        <Nav lang={lang} setLang={setLang} sections={SECTIONS} activeId="blog" currentPage="writings" />
         <WritingsHero lang={lang} />
         <Blog lang={lang} onOpen={onOpen} />
         <Footer lang={lang} />
